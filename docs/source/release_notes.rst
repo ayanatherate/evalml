@@ -5,7 +5,7 @@
     * Enhancements
     * Fixes
     * Changes
-        * Moved some of the preprocessing pipeline construction utilities to preprocessing/utils.py :pr:`3348
+        * Moved some of the preprocessing pipeline construction utilities to preprocessing/utils.py :pr:`3348`
     * Documentation Changes
     * Testing Changes
 
