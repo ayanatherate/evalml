@@ -1,6 +1,7 @@
 """Component that applies a log transformation to the target data."""
 import numpy as np
 import pandas as pd
+from skopt.space import Categorical
 
 from evalml.pipelines.components.transformers.transformer import Transformer
 from evalml.utils import infer_feature_types
@@ -11,13 +12,15 @@ class LogTransformer(Transformer):
 
     name = "Log Transformer"
 
-    hyperparameter_ranges = {}
-    """{}"""
+    hyperparameter_ranges = {"do_transform": Categorical([True, False])}
+    """{"do_transform": Categorical([True, False])}"""
     modifies_features = False
     modifies_target = True
 
-    def __init__(self, random_seed=0):
-        super().__init__(parameters={}, component_obj=None, random_seed=random_seed)
+    def __init__(self, do_transform=True, random_seed=0):
+        self.do_transform = do_transform
+        super().__init__(parameters={'do_transform': do_transform},
+                         component_obj=None, random_seed=random_seed)
 
     def fit(self, X, y=None):
         """Fits the LogTransformer.
@@ -45,10 +48,13 @@ class LogTransformer(Transformer):
         if y is None:
             return X, y
         y_ww = infer_feature_types(y)
-        self.min = y_ww.min()
-        if self.min <= 0:
-            y_ww = y_ww.apply(lambda x: x + abs(self.min) + 1)
-        y_t = infer_feature_types(y_ww.apply(np.log))
+        if self.do_transform:
+            self.min = y_ww.min()
+            if self.min <= 0:
+                y_ww = y_ww + abs(self.min) + 1
+            y_t = infer_feature_types(np.log(y_ww))
+        else:
+            y_t = y_ww
         return X, y_t
 
     def fit_transform(self, X, y=None):
@@ -75,9 +81,12 @@ class LogTransformer(Transformer):
 
         """
         y_ww = infer_feature_types(y)
-        y_inv = y_ww.apply(np.exp)
-        if self.min <= 0:
-            y_inv = y_inv.apply(lambda x: x - abs(self.min) - 1)
+        if self.do_transform:
+            y_inv = np.exp(y_ww)
+            if self.min <= 0:
+                y_inv = y_inv - abs(self.min) - 1
 
-        y_inv = infer_feature_types(pd.Series(y_inv, index=y_ww.index))
+            y_inv = infer_feature_types(pd.Series(y_inv, index=y_ww.index))
+        else:
+            y_inv = y_ww
         return y_inv

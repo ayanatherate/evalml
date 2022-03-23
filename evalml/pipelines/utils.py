@@ -61,6 +61,7 @@ from evalml.problem_types import (
     handle_problem_types,
     is_classification,
     is_time_series,
+    is_regression
 )
 from evalml.utils import import_or_raise, infer_feature_types
 
@@ -235,6 +236,13 @@ def _get_drop_nan_rows_transformer(
     return components
 
 
+def _get_log_transformer(X, y, problem_type, estimator_class, sampler_name=None):
+    components = []
+    if is_regression(problem_type):
+        components.append(LogTransformer)
+    return components
+
+
 def _get_preprocessing_components(
     X, y, problem_type, estimator_class, sampler_name=None
 ):
@@ -254,6 +262,7 @@ def _get_preprocessing_components(
         components_functions = [
             _get_label_encoder,
             _get_drop_all_null,
+            _get_log_transformer,
             _get_replace_null,
             _get_drop_index_unknown,
             _get_url_email,
@@ -269,6 +278,7 @@ def _get_preprocessing_components(
     else:
         components_functions = [
             _get_label_encoder,
+            _get_log_transformer,
             _get_drop_all_null,
             _get_replace_null,
             _get_drop_index_unknown,
