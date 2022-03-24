@@ -690,7 +690,7 @@ class ComponentGraph:
             format=graph_format,
             graph_attr={"splines": "true", "overlap": "scale", "rankdir": "LR"},
         )
-        for component_name, component_class in self.component_instances.items():
+        for component_name, component_class in self.nodes:
             label = "%s\l" % (component_name)  # noqa: W605
             if isinstance(component_class, ComponentBase):
                 parameters = "\l".join(
@@ -707,9 +707,10 @@ class ComponentGraph:
         graph.node("X", shape="circle", label="X")
         graph.node("y", shape="circle", label="y")
 
-        x_edges = self._get_edges(self.component_dict, "features")
-        y_edges = self._get_edges(self.component_dict, "target")
-        for component_name, component_info in self.component_dict.items():
+        x_edges = self.x_edges
+        y_edges = self.y_edges
+        for component_name, _ in self.nodes:
+            component_info = self.component_dict[component_name]
             for parent in component_info[1:]:
                 if parent == "X":
                     x_edges.append(("X", component_name))
@@ -722,6 +723,28 @@ class ComponentGraph:
             graph.edge(edge[0], edge[1], style="dotted")
 
         return graph
+
+    @property
+    def nodes(self):
+        return [(comp_, att_) for comp_, att_ in self.component_instances.items() if att_.include_in_graph]
+
+    @property
+    def x_edges(self):
+        x_edges = self._get_edges(self.component_dict, edges_to_return='features')
+        viewable_edges = []
+        for edge in x_edges:
+            if all(self.component_instances[node].include_in_graph for node in edge):
+                viewable_edges.append(edge)
+        return viewable_edges
+
+    @property
+    def y_edges(self):
+        x_edges = self._get_edges(self.component_dict, edges_to_return='target')
+        viewable_edges = []
+        for edge in x_edges:
+            if all(self.component_instances[node].include_in_graph for node in edge):
+                viewable_edges.append(edge)
+        return viewable_edges
 
     @staticmethod
     def _get_edges(component_dict, edges_to_return="all"):

@@ -68,3 +68,7 @@ class Transformer(ComponentBase):
 
     def _get_feature_provenance(self):
         return {}
+
+    @property
+    def include_in_graph(self):
+        return True

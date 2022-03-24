@@ -142,7 +142,8 @@ class PipelineBase(ABC, metaclass=PipelineBaseMeta):
         """
         component_graph = [
             type(self.component_graph.component_instances[component])
-            for component in copy.copy(self.component_graph.component_instances)
+            for component, _ in self.component_graph.nodes
+            if self.component_graph.component_instances[component].include_in_graph
         ]
         if len(component_graph) == 0:
             return "Empty Pipeline"
@@ -443,7 +444,7 @@ class PipelineBase(ABC, metaclass=PipelineBaseMeta):
             dag_json (str): A serialized JSON representation of a DAG structure.
         """
         nodes = {}
-        for comp_, att_ in self.component_graph.component_instances.items():
+        for comp_, att_ in self.component_graph.nodes:
             param_dict = {}
             for param, val in att_.parameters.items():
                 # Can't JSON serialize components directly, have to split them into name and parameters
@@ -456,19 +457,11 @@ class PipelineBase(ABC, metaclass=PipelineBaseMeta):
                     param_dict[param] = val
             nodes[comp_] = {"Parameters": param_dict, "Name": att_.name}
 
-        x_edges_list = self.component_graph._get_edges(
-            self.component_graph.component_dict, "features"
-        )
-        y_edges_list = self.component_graph._get_edges(
-            self.component_graph.component_dict, "target"
-        )
-        x_edges = [{"from": edge[0], "to": edge[1]} for edge in x_edges_list]
-        y_edges = [{"from": edge[0], "to": edge[1]} for edge in y_edges_list]
+        x_edges = [{"from": edge[0], "to": edge[1]} for edge in self.component_graph.x_edges]
+        y_edges = [{"from": edge[0], "to": edge[1]} for edge in self.component_graph.y_edges]
 
-        for (
-            component_name,
-            component_info,
-        ) in self.component_graph.component_dict.items():
+        for component_name, _ in self.component_graph.nodes:
+            component_info = self.component_graph.component_dict[component_name]
             for parent in component_info[1:]:
                 if parent == "X":
                     x_edges.append({"from": "X", "to": component_name})

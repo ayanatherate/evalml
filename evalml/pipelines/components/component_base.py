@@ -73,6 +73,12 @@ class ComponentBase(ABC, metaclass=ComponentBaseMeta):
     def training_only(cls):
         """Returns whether or not this component should be evaluated during training-time only, or during both training and prediction time."""
 
+    @property
+    @abstractmethod
+    def include_in_graph(self):
+        """Returns whether or not this component should be evaluated during training-time only, or during both training and prediction time."""
+        return True
+
     @classproperty
     def needs_fitting(self):
         """Returns boolean determining if component needs fitting before calling predict, predict_proba, transform, or feature_importances.

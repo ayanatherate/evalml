@@ -146,3 +146,7 @@ class Estimator(ComponentBase):
             super().__eq__(other)
             and self.supported_problem_types == other.supported_problem_types
         )
+
+    @property
+    def include_in_graph(self):
+        return True

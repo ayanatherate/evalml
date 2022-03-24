@@ -90,3 +90,7 @@ class LogTransformer(Transformer):
         else:
             y_inv = y_ww
         return y_inv
+
+    @property
+    def include_in_graph(self):
+        return self.do_transform
