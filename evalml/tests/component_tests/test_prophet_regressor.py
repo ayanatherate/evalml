@@ -113,7 +113,9 @@ def test_fit_predict_ts(ts_data, drop_index, prophet):
         assert not isinstance(y.index, pd.DatetimeIndex)
 
     prophet_df = ProphetRegressor.build_prophet_df(X=X, y=y, time_index="date")
-    p_clf = prophet.Prophet(uncertainty_samples=False, changepoint_prior_scale=2.0)
+    p_clf = prophet.Prophet(
+        uncertainty_samples=False, changepoint_prior_scale=2.0, stan_backend="CMDSTANPY"
+    )
     p_clf.fit(prophet_df)
     y_pred_p = p_clf.predict(prophet_df)["yhat"]
 
